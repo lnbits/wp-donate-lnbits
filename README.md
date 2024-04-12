@@ -37,5 +37,5 @@ Using this makes only sense when the option 'After payment create donation post'
 
 
 ## Support
-This plugin is initially created for clients of [Lightning Checkout](https://lightningchechout.eu/), but open sourced because of the general purpose of this plugin. 
+This plugin is initially created for clients of [Lightning Checkout](https://lightningcheckout.eu/), but open sourced because of the general purpose of this plugin. 
 If you have improvements please create an issue, or even better create a PR. 
