@@ -55,15 +55,23 @@ function handle_webhook($request) {
     $api_endpoint = get_option("lnc_btcdonate_api_endpoint");
     $api_key = get_option("lnc_btcdonate_api_key");
 
-    // Get payment data via payemnt hash
-    $data = $request->get_json_params();
-    $payment_response = wp_remote_get($api_endpoint . "/api/v1/payments/".$data['payment_hash'], [
-        "headers" => [
-            "Content-Type" => "application/json",
-            "X-API-KEY" => $api_key,
+ // Get payment data via payemnt hash
+	$jsonString = $request->get_json_params();
 
-        ],
-    ]);
+	$data = json_decode($jsonString, true);
+
+	// Check for errors in decoding
+	if (json_last_error() !== JSON_ERROR_NONE) {
+		echo 'Error parsing JSON: ' . json_last_error_msg();
+	} else {
+		// Retrieve the payment_hash
+		$payment_response = wp_remote_get($api_endpoint . "/api/v1/payments/".$data['payment_hash'], [
+			"headers" => [
+				"Content-Type" => "application/json",
+				"X-API-KEY" => $api_key,
+
+			]]);
+		}
     if (is_wp_error($payment_response)) {
         error_log("API Error: " . $payment_response->get_error_message());
     } else {
@@ -81,3 +89,4 @@ function handle_webhook($request) {
     }
     return new WP_REST_Response(array('message' => 'Failed to publish donation.'), 500);
 }
+
