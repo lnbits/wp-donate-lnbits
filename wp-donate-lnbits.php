@@ -2,7 +2,7 @@
 /*
 Plugin Name: WP Donate LNbits
 Description: Accept Bitcoin Donations on your Wordpress website. Initially created for bitcoin payment provider Lightning Checkout.
-Version: 0.1
+Version: 0.2
 Author: cryptoteun
 */
 
