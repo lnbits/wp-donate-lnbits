@@ -1,15 +1,31 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Register Settings
 function lnc_btcdonate_register_settings()
 {
-    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_api_endpoint");
-    register_setting("lnc_btcdonate_settings_group","lnc_btcdonate_api_key");
-    register_setting("lnc_btcdonate_settings_group","lnc_btcdonate_api_wallet");
-    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_api_createpost", array(
-        'type' => 'boolean', // Ensure that the type is set to boolean
-        'sanitize_callback' => 'sanitize_checkbox', // Add a sanitize callback for checkbox
+    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_api_endpoint", array(
+        'type' => 'string',
+        'sanitize_callback' => 'lnc_btcdonate_sanitize_endpoint',
     ));
-    register_setting("lnc_btcdonate_settings_group","lnc_btcdonate_currency_options","lnc_btcdonate_sanitize_currency_options");
+    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_api_key", array(
+        'type' => 'string',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_api_wallet", array(
+        'type' => 'string',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_api_createpost", array(
+        'type' => 'boolean',
+        'sanitize_callback' => 'lnc_btcdonate_sanitize_checkbox',
+    ));
+    register_setting("lnc_btcdonate_settings_group", "lnc_btcdonate_currency_options", array(
+        'type' => 'string',
+        'sanitize_callback' => 'lnc_btcdonate_sanitize_currency_options',
+    ));
 
     add_settings_section("lnc_btcdonate_settings_section","API Settings","lnc_btcdonate_settings_section_callback","lnc_btcdonate_settings");
 
@@ -21,9 +37,15 @@ function lnc_btcdonate_register_settings()
 }
 
 // Make sure the checkboxes are saved correctly
-function sanitize_checkbox($input)
+function lnc_btcdonate_sanitize_checkbox($input)
 {
     return (bool) $input;
+}
+
+// Only allow http(s) URLs, stored without a trailing slash
+function lnc_btcdonate_sanitize_endpoint($input)
+{
+    return untrailingslashit(esc_url_raw(trim((string) $input), array('http', 'https')));
 }
 
 
@@ -36,24 +58,24 @@ function lnc_btcdonate_settings_section_callback()
 function lnc_btcdonate_api_endpoint_callback()
 {
     $endpoint = get_option("lnc_btcdonate_api_endpoint");
-    echo "<input type='text' name='lnc_btcdonate_api_endpoint' value='$endpoint' />";
+    echo "<input type='url' name='lnc_btcdonate_api_endpoint' value='" . esc_attr($endpoint) . "' />";
 }
 
 function lnc_btcdonate_api_key_callback()
 {
     $key = get_option("lnc_btcdonate_api_key");
-    echo "<input type='text' name='lnc_btcdonate_api_key' value='$key' />";
+    echo "<input type='password' autocomplete='off' name='lnc_btcdonate_api_key' value='" . esc_attr($key) . "' />";
 }
 
 function lnc_btcdonate_api_wallet_callback()
 {
     $wallet = get_option("lnc_btcdonate_api_wallet");
-    echo "<input type='text' name='lnc_btcdonate_api_wallet' value='$wallet' />";
+    echo "<input type='text' name='lnc_btcdonate_api_wallet' value='" . esc_attr($wallet) . "' />";
 }
 
 function lnc_btcdonate_api_createpost_callback()
 {
-    $enable_api_createpost = get_option("lnc_btcdonate_api_createpost", false); ?>
+    $enable_api_createpost = (bool) get_option("lnc_btcdonate_api_createpost", false); ?>
     <label for="lnc_btcdonate_api_createpost">
         <input type="checkbox" id="lnc_btcdonate_api_createpost" name="lnc_btcdonate_api_createpost" <?php checked(true, $enable_api_createpost); ?> />
         Create donation post
@@ -78,6 +100,9 @@ function lnc_btcdonate_render_main_page()
 
 function lnc_btcdonate_render_settings_page()
 {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
     ?>
     <div class="wrap"><h1>Bitcoin Donate Settings</h1>
         <form method="post" action="options.php">
@@ -96,10 +121,11 @@ function lnc_btcdonate_sanitize_currency_options($input)
     $valid_currencies = lnc_btcdonate_get_currency_list();
 
     // Convert the input to an array, Filter out invalid currencies, Convert back to a comma-separated string
-    $input_array = explode(",", $input);
-    $sanitized_input = array_intersect($input_array, array_keys($valid_currencies));
-    $sanitized_input_string = implode(",", $sanitized_input);
-    return $sanitized_input_string;
+    $input_array = array_map(function ($code) {
+        return strtoupper(trim($code));
+    }, explode(",", (string) $input));
+    $sanitized_input = array_unique(array_intersect($input_array, array_keys($valid_currencies)));
+    return implode(",", $sanitized_input);
 }
 
 // Function to define a basic set of currencies (replace with your desired list)
