@@ -2,11 +2,15 @@
 /*
 Plugin Name: WP Donate LNbits
 Description: Accept Bitcoin Donations on your Wordpress website. Initially created for bitcoin payment provider Lightning Checkout.
-Version: 0.2
+Version: 0.3
 Author: cryptoteun
 */
 
-require 'plugin-update-checker/plugin-update-checker.php';
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+require plugin_dir_path(__FILE__) . 'plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
