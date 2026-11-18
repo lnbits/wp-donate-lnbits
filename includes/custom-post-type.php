@@ -1,6 +1,10 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Create a custom post type for donations
-function create_donation_post_type() {
+function lnc_btcdonate_create_donation_post_type() {
     register_post_type('donation', array(
         'labels' => array(
             'name' => 'Donations',
@@ -9,21 +13,23 @@ function create_donation_post_type() {
         'public' => true,
         'has_archive' => false,
         'publicly_queryable' => false,
+        'show_in_rest' => false,
+        'exclude_from_search' => true,
 		'revisions' => false,
         'supports' => array('title', 'editor'),
     ));
 }
 
 // Add a noindex meta tag for the 'donation' custom post type
-function prevent_indexing_custom_post_type() {
+function lnc_btcdonate_prevent_indexing() {
     // Check if it's a single post of the custom post type 'donation'
     if (is_singular('donation')) {
         echo '<meta name="robots" content="noindex" />';
     }
 }
 
-add_action('init', 'create_donation_post_type');
-add_action('wp_head', 'prevent_indexing_custom_post_type');
+add_action('init', 'lnc_btcdonate_create_donation_post_type');
+add_action('wp_head', 'lnc_btcdonate_prevent_indexing');
 
 // Hook to add the metabox
 add_action('add_meta_boxes', 'lnc_btcdonate_add_custom_metabox');
@@ -48,6 +54,6 @@ function lnc_btcdonate_render_custom_metabox($post) {
     // Output the HTML for your custom fields
     ?>
     <label for="lnc_btcdonate_payment_hash">Payment Hash:</label>
-    <input type="text" id="lnc_btcdonate_payment_hash" size="75" name="lnc_btcdonate_payment_hash" value="<?php echo esc_attr($payment_hash); ?> " disabled />
+    <input type="text" id="lnc_btcdonate_payment_hash" size="75" name="lnc_btcdonate_payment_hash" value="<?php echo esc_attr($payment_hash); ?>" disabled />
     <?php
 }
